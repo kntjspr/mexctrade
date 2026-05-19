@@ -1,5 +1,5 @@
-mexctrade
-mexctrade.exe
+/mexctrade
+/mexctrade.exe
 *.test
 *.out
 /dist/
