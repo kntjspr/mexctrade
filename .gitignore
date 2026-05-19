@@ -1,0 +1,9 @@
+mexctrade
+mexctrade.exe
+*.test
+*.out
+/dist/
+.idea/
+.vscode/
+.envrc
+config.toml
