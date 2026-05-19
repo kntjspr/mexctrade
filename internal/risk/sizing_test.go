@@ -27,8 +27,9 @@ func TestComputeLongMarket(t *testing.T) {
 	if out.Leverage != 1 {
 		t.Errorf("Leverage: got %d want 1 (notional 400 < balance 1000)", out.Leverage)
 	}
-	if out.Contracts != 399 {
-		t.Errorf("Contracts: got %d want 399", out.Contracts)
+	// notional 400 USDT / entry 100 / contract_size 0.01 = 400 contracts exactly
+	if out.Contracts != 400 {
+		t.Errorf("Contracts: got %d want 400", out.Contracts)
 	}
 }
 
@@ -36,7 +37,7 @@ func TestComputeShortLimit(t *testing.T) {
 	in := Inputs{
 		Balance: 500, RiskPct: 1,
 		Entry: 200, SL: 210, Side: SideShort,
-		MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 1,
+		MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 0.001,
 	}
 	out, err := Compute(in)
 	if err != nil {
@@ -48,8 +49,9 @@ func TestComputeShortLimit(t *testing.T) {
 	if out.NotionalUSDT < 99.9 || out.NotionalUSDT > 100.1 {
 		t.Errorf("NotionalUSDT: got %f want ~100", out.NotionalUSDT)
 	}
-	if out.Contracts != 0 {
-		t.Errorf("Contracts: got %d want 0 (100 USDT / 200 entry / 1 cs = 0.5 -> floor 0)", out.Contracts)
+	// notional 100 USDT / entry 200 / contract_size 0.001 = 500 contracts
+	if out.Contracts != 500 {
+		t.Errorf("Contracts: got %d want 500", out.Contracts)
 	}
 }
 
@@ -110,10 +112,10 @@ func TestRefusalSLTooTight(t *testing.T) {
 }
 
 func TestRefusalLeverageExceedsMax(t *testing.T) {
-	// notional 4000 vs balance 100 -> raw_leverage 40 > max 20 -> refuse
-	in := Inputs{Balance: 100, RiskPct: 2, Entry: 100, SL: 99.95, Side: SideLong, MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 0.01}
-	// First SL_TOO_TIGHT will fire because 0.05% < 0.1%, swap to tight-but-allowed:
-	in.SL = 99.5
+	// risk_amount = 5, sl_pct = 0.0011, notional = 4545.45,
+	// raw_leverage = ceil(4545.45/100) = 46 > MaxLeverage=20 -> refuse.
+	// SL is just above the SL_TOO_TIGHT threshold (0.001) so that check passes.
+	in := Inputs{Balance: 100, RiskPct: 5, Entry: 100, SL: 99.89, Side: SideLong, MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 0.01}
 	_, err := Compute(in)
 	if !errors.Is(err, ErrLeverageExceedsMax) {
 		t.Fatalf("got %v want ErrLeverageExceedsMax", err)
@@ -121,8 +123,9 @@ func TestRefusalLeverageExceedsMax(t *testing.T) {
 }
 
 func TestRefusalContractsZero(t *testing.T) {
-	// notional 1 USDT / entry 50000 / contract_size 0.001 -> 0.02 -> floor 0
-	in := Inputs{Balance: 100, RiskPct: 0.5, Entry: 50000, SL: 49500, Side: SideLong, MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 0.001}
+	// risk_amount = 0.1, sl_pct = 0.02, notional = 5 USDT.
+	// contracts = floor(5 / 50000 / 0.001) = floor(0.1) = 0 -> refuse.
+	in := Inputs{Balance: 100, RiskPct: 0.1, Entry: 50000, SL: 49000, Side: SideLong, MaxLeverage: 20, SymbolMaxLeverage: 100, ContractSize: 0.001}
 	_, err := Compute(in)
 	if !errors.Is(err, ErrContractsZero) {
 		t.Fatalf("got %v want ErrContractsZero", err)
