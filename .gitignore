@@ -7,3 +7,6 @@
 .vscode/
 .envrc
 config.toml
+
+# AI planning artifacts (specs, plans, brainstorms) — local only
+docs/superpowers/
