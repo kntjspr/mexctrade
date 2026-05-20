@@ -27,5 +27,3 @@ MEXC futures CLI for risk-managed trade execution. Intended to be invoked by an 
     mexctrade close --symbol BTC
 
 Global flags: `--json`, `--dry-run`, `--verbose`, `--config`.
-
-See `docs/superpowers/specs/2026-05-20-mexctrade-design.md` for the full design.
