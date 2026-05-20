@@ -43,6 +43,32 @@ func main() {
 					return runCmd(ctx, c, commands.Orders)
 				},
 			},
+			{
+				Name:  "place",
+				Usage: "open a new position",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "symbol", Required: true},
+					&cli.StringFlag{Name: "side", Required: true, Usage: "long | short"},
+					&cli.StringFlag{Name: "entry", Required: true, Usage: "'market' or a price"},
+					&cli.Float64Flag{Name: "entry-price", Usage: "current mark price (when --entry=market)"},
+					&cli.Float64Flag{Name: "sl", Required: true},
+					&cli.Float64Flag{Name: "tp"},
+					&cli.Float64Flag{Name: "risk-pct", Value: 2},
+				},
+				Action: func(ctx context.Context, c *cli.Command) error {
+					return runCmd(ctx, c, func(ctx context.Context, cmdCtx *commands.Ctx) commands.ExitCode {
+						return commands.Place(ctx, cmdCtx, commands.PlaceArgs{
+							Symbol:     c.String("symbol"),
+							Side:       c.String("side"),
+							Entry:      c.String("entry"),
+							EntryPrice: c.Float64("entry-price"),
+							SL:         c.Float64("sl"),
+							TP:         c.Float64("tp"),
+							RiskPct:    c.Float64("risk-pct"),
+						})
+					})
+				},
+			},
 		},
 	}
 	if err := app.Run(context.Background(), os.Args); err != nil {
