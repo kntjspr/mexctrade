@@ -40,10 +40,7 @@ func NewResolver(client *Client) *Resolver {
 		cachePath: filepath.Join(cacheDir, "contracts.json"),
 		ttl:       24 * time.Hour,
 	}
-	// TODO(Task 7): wire to client.fetchContracts once implemented
-	r.fetch = func() ([]Contract, error) {
-		return nil, fmt.Errorf("client.fetchContracts not implemented yet (Task 7)")
-	}
+	r.fetch = client.fetchContracts
 	return r
 }
 
