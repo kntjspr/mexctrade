@@ -69,6 +69,33 @@ func main() {
 					})
 				},
 			},
+			{
+				Name:  "cancel",
+				Usage: "cancel pending limit orders on a symbol",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "symbol", Required: true},
+					&cli.StringFlag{Name: "order-id", Usage: "cancel only this order id"},
+				},
+				Action: func(ctx context.Context, c *cli.Command) error {
+					return runCmd(ctx, c, func(ctx context.Context, cc *commands.Ctx) commands.ExitCode {
+						return commands.Cancel(ctx, cc, commands.CancelArgs{
+							Symbol: c.String("symbol"), OrderID: c.String("order-id"),
+						})
+					})
+				},
+			},
+			{
+				Name:  "close",
+				Usage: "market-close an open position",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "symbol", Required: true},
+				},
+				Action: func(ctx context.Context, c *cli.Command) error {
+					return runCmd(ctx, c, func(ctx context.Context, cc *commands.Ctx) commands.ExitCode {
+						return commands.Close(ctx, cc, commands.CloseArgs{Symbol: c.String("symbol")})
+					})
+				},
+			},
 		},
 	}
 	if err := app.Run(context.Background(), os.Args); err != nil {
